@@ -5,8 +5,18 @@ import { authenticateUser } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import { User } from "@/lib/models";
 import { v4 as uuidv4 } from "uuid";
+import type { NextAuthOptions } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import type { Session } from "next-auth";
 
-export const authOptions = {
+interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+  image?: string;
+}
+
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -20,33 +30,45 @@ export const authOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error("Email and password are required");
         }
         
         try {
           const user = await authenticateUser(credentials.email, credentials.password);
           return user;
-        } catch (error) {
-          console.error("Auth error:", error);
-          return null;
+        } catch (error: any) {
+          // Now handling specific error messages from authenticateUser
+          const errorMessage = error.message || "Authentication failed";
+          
+          // These error messages will be displayed to the user in the UI
+          if (errorMessage.includes("not found")) {
+            throw new Error("No user found with this email");
+          } else if (errorMessage.includes("password")) {
+            throw new Error("Invalid password");
+          } else if (errorMessage.includes("social login")) {
+            throw new Error("Please use the social login option associated with this account");
+          }
+          
+          // Generic fallback
+          throw new Error(errorMessage);
         }
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT; user?: AuthUser }) {
       if (user) {
         token.id = user.id;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session?.user) {
-        session.user.id = token.id;
+        session.user.id = token.id as string;
       }
       return session;
     },
-    async signIn({ user, account }) {
+    async signIn({ user, account }: { user: AuthUser; account: any }) {
       if (account?.provider === "google") {
         try {
           await dbConnect();
@@ -74,7 +96,7 @@ export const authOptions = {
     error: '/auth/error',
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

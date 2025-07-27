@@ -8,20 +8,52 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const router = useRouter();
   const { toast } = useToast();
 
+  const validateFields = () => {
+    const errors: {
+      email?: string;
+      password?: string;
+    } = {};
+    
+    if (!email) {
+      errors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      errors.email = "Invalid email format";
+    }
+    
+    if (!password) {
+      errors.password = "Password is required";
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError("");
+    
+    if (!validateFields()) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -32,6 +64,7 @@ export default function SignIn() {
       });
 
       if (result?.error) {
+        setFormError("Invalid email or password");
         toast({
           title: "Login failed",
           description: "Invalid email or password",
@@ -45,6 +78,7 @@ export default function SignIn() {
         router.push("/dashboard");
       }
     } catch (error) {
+      setFormError("Something went wrong. Please try again.");
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -74,30 +108,86 @@ export default function SignIn() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {formError && (
+              <Alert variant="destructive" className="bg-red-500/10 border-red-500/30">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="flex justify-between">
+                  Email
+                  {fieldErrors.email && (
+                    <span className="text-xs text-red-500">{fieldErrors.email}</span>
+                  )}
+                </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-white/5 border-white/10"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (fieldErrors.email) {
+                      setFieldErrors({
+                        ...fieldErrors,
+                        email: undefined,
+                      });
+                    }
+                  }}
+                  className={`bg-white/5 border-white/10 ${
+                    fieldErrors.email ? "border-red-500 focus-visible:ring-red-500" : ""
+                  }`}
+                  onBlur={() => {
+                    if (!email) {
+                      setFieldErrors({
+                        ...fieldErrors,
+                        email: "Email is required",
+                      });
+                    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+                      setFieldErrors({
+                        ...fieldErrors,
+                        email: "Invalid email format",
+                      });
+                    }
+                  }}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="flex justify-between">
+                  Password
+                  {fieldErrors.password && (
+                    <span className="text-xs text-red-500">{fieldErrors.password}</span>
+                  )}
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="bg-white/5 border-white/10"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (fieldErrors.password) {
+                        setFieldErrors({
+                          ...fieldErrors,
+                          password: undefined,
+                        });
+                      }
+                    }}
+                    className={`bg-white/5 border-white/10 ${
+                      fieldErrors.password ? "border-red-500 focus-visible:ring-red-500" : ""
+                    }`}
+                    onBlur={() => {
+                      if (!password) {
+                        setFieldErrors({
+                          ...fieldErrors,
+                          password: "Password is required",
+                        });
+                      }
+                    }}
                   />
                   <Button
                     type="button"

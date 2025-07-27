@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Home, MessageSquare, History, Info, Menu, X, LogOut, LogIn, User } from "lucide-react"
+import { Home, MessageSquare, History, Info, Menu, X, LogOut, LogIn, User, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useSession, signOut } from "next-auth/react"
 import { 
@@ -109,12 +109,20 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link href="/auth/signin">
-                <Button variant="default" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Login
-                </Button>
-              </Link>
+              <>
+                <Link href="/auth/signin">
+                  <Button variant="default" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/auth/register">
+                  <Button variant="outline" className="border-white/20 text-white bg-white/5 hover:bg-white/10">
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
 
@@ -185,12 +193,20 @@ export default function Navbar() {
                   </div>
                 </>
               ) : (
-                <Link href="/auth/signin" className="w-full" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Login
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/auth/signin" className="w-full" onClick={() => setIsOpen(false)}>
+                    <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register" className="w-full" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10">
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
               )}
             </div>
           </motion.div>

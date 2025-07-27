@@ -9,13 +9,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Eye, EyeOff, Loader2, Check, X, User, Mail, Phone, MapPin, Briefcase } from "lucide-react";
+import { Eye, EyeOff, Loader2, Check, X, User, Mail, Phone, MapPin, Briefcase, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Register() {
   const [currentTab, setCurrentTab] = useState("basic");
+  const [formErrors, setFormErrors] = useState<{
+    basic?: string;
+    personal?: string;
+    preferences?: string;
+  }>({});
+  const [fieldErrors, setFieldErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    phone?: string;
+  }>({});
+  
   const [formData, setFormData] = useState({
     // Basic Info
     firstName: "",
@@ -91,6 +106,14 @@ export default function Register() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+
+    // Clear field errors when user changes input
+    if (fieldErrors[name as keyof typeof fieldErrors]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: undefined
+      }));
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -122,23 +145,66 @@ export default function Register() {
   };
 
   const validateBasicInfo = () => {
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      toast({
-        title: "Missing required fields",
-        description: "Please fill in all required basic information",
-        variant: "destructive",
-      });
+    const errors: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+    } = {};
+
+    // First Name validation
+    if (!formData.firstName) {
+      errors.firstName = "First name is required";
+    }
+
+    // Last Name validation
+    if (!formData.lastName) {
+      errors.lastName = "Last name is required";
+    }
+    
+    // Email validation
+    if (!formData.email) {
+      errors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      errors.email = "Invalid email format";
+    }
+    
+    // Password validation
+    if (!formData.password) {
+      errors.password = "Password is required";
+    } else {
+      const failedRequirements = passwordRequirements.filter(
+        (req) => !req.regex.test(formData.password)
+      );
+      
+      if (failedRequirements.length > 0) {
+        errors.password = "Password does not meet requirements";
+      }
+    }
+    
+    // Confirm password validation
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+    
+    setFieldErrors(prev => ({
+      ...prev,
+      ...errors
+    }));
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(prev => ({
+        ...prev,
+        basic: "Please fix the errors before continuing"
+      }));
       return false;
     }
     
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Password mismatch",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return false;
-    }
+    setFormErrors(prev => ({
+      ...prev,
+      basic: undefined
+    }));
     
     return true;
   };
@@ -171,6 +237,33 @@ export default function Register() {
         });
         router.push("/auth/signin");
       } else {
+        if (data.error.includes("already exists")) {
+          setFormErrors(prev => ({
+            ...prev,
+            basic: "A user with this email already exists"
+          }));
+          setFieldErrors(prev => ({
+            ...prev,
+            email: "Email already registered"
+          }));
+          setCurrentTab("basic");
+        } else if (data.error.includes("Password")) {
+          setFormErrors(prev => ({
+            ...prev,
+            basic: "Password does not meet requirements"
+          }));
+          setFieldErrors(prev => ({
+            ...prev,
+            password: data.error
+          }));
+          setCurrentTab("basic");
+        } else {
+          setFormErrors(prev => ({
+            ...prev,
+            basic: data.error
+          }));
+        }
+        
         toast({
           title: "Registration failed",
           description: data.error,
@@ -178,6 +271,11 @@ export default function Register() {
         });
       }
     } catch (error) {
+      setFormErrors(prev => ({
+        ...prev,
+        basic: "Something went wrong. Please try again."
+      }));
+      
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -229,9 +327,21 @@ export default function Register() {
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 mt-6">
+                  {formErrors.basic && (
+                    <Alert variant="destructive" className="bg-red-500/10 border-red-500/30">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{formErrors.basic}</AlertDescription>
+                    </Alert>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name *</Label>
+                      <Label htmlFor="firstName" className="flex justify-between">
+                        First Name *
+                        {fieldErrors.firstName && (
+                          <span className="text-xs text-red-500">{fieldErrors.firstName}</span>
+                        )}
+                      </Label>
                       <Input
                         id="firstName"
                         name="firstName"
@@ -239,12 +349,26 @@ export default function Register() {
                         placeholder="John"
                         value={formData.firstName}
                         onChange={handleChange}
-                        required
-                        className="bg-white/5 border-white/10"
+                        className={`bg-white/5 border-white/10 ${
+                          fieldErrors.firstName ? "border-red-500 focus-visible:ring-red-500" : ""
+                        }`}
+                        onBlur={() => {
+                          if (!formData.firstName) {
+                            setFieldErrors(prev => ({
+                              ...prev,
+                              firstName: "First name is required"
+                            }));
+                          }
+                        }}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name *</Label>
+                      <Label htmlFor="lastName" className="flex justify-between">
+                        Last Name *
+                        {fieldErrors.lastName && (
+                          <span className="text-xs text-red-500">{fieldErrors.lastName}</span>
+                        )}
+                      </Label>
                       <Input
                         id="lastName"
                         name="lastName"
@@ -252,14 +376,28 @@ export default function Register() {
                         placeholder="Doe"
                         value={formData.lastName}
                         onChange={handleChange}
-                        required
-                        className="bg-white/5 border-white/10"
+                        className={`bg-white/5 border-white/10 ${
+                          fieldErrors.lastName ? "border-red-500 focus-visible:ring-red-500" : ""
+                        }`}
+                        onBlur={() => {
+                          if (!formData.lastName) {
+                            setFieldErrors(prev => ({
+                              ...prev,
+                              lastName: "Last name is required"
+                            }));
+                          }
+                        }}
                       />
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email" className="flex justify-between">
+                      Email *
+                      {fieldErrors.email && (
+                        <span className="text-xs text-red-500">{fieldErrors.email}</span>
+                      )}
+                    </Label>
                     <Input
                       id="email"
                       name="email"
@@ -267,8 +405,22 @@ export default function Register() {
                       placeholder="john.doe@example.com"
                       value={formData.email}
                       onChange={handleChange}
-                      required
-                      className="bg-white/5 border-white/10"
+                      className={`bg-white/5 border-white/10 ${
+                        fieldErrors.email ? "border-red-500 focus-visible:ring-red-500" : ""
+                      }`}
+                      onBlur={() => {
+                        if (!formData.email) {
+                          setFieldErrors(prev => ({
+                            ...prev,
+                            email: "Email is required"
+                          }));
+                        } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+                          setFieldErrors(prev => ({
+                            ...prev,
+                            email: "Invalid email format"
+                          }));
+                        }
+                      }}
                     />
                   </div>
                   
@@ -286,7 +438,12 @@ export default function Register() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password *</Label>
+                    <Label htmlFor="password" className="flex justify-between">
+                      Password *
+                      {fieldErrors.password && (
+                        <span className="text-xs text-red-500">{fieldErrors.password}</span>
+                      )}
+                    </Label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -295,8 +452,9 @@ export default function Register() {
                         placeholder="Create a strong password"
                         value={formData.password}
                         onChange={handleChange}
-                        required
-                        className="bg-white/5 border-white/10"
+                        className={`bg-white/5 border-white/10 ${
+                          fieldErrors.password ? "border-red-500 focus-visible:ring-red-500" : ""
+                        }`}
                       />
                       <Button
                         type="button"
@@ -327,7 +485,12 @@ export default function Register() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                    <Label htmlFor="confirmPassword" className="flex justify-between">
+                      Confirm Password *
+                      {fieldErrors.confirmPassword && (
+                        <span className="text-xs text-red-500">{fieldErrors.confirmPassword}</span>
+                      )}
+                    </Label>
                     <div className="relative">
                       <Input
                         id="confirmPassword"
@@ -336,8 +499,17 @@ export default function Register() {
                         placeholder="Confirm your password"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        required
-                        className="bg-white/5 border-white/10"
+                        className={`bg-white/5 border-white/10 ${
+                          fieldErrors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""
+                        }`}
+                        onBlur={() => {
+                          if (formData.password !== formData.confirmPassword) {
+                            setFieldErrors(prev => ({
+                              ...prev,
+                              confirmPassword: "Passwords do not match"
+                            }));
+                          }
+                        }}
                       />
                       <Button
                         type="button"
@@ -361,6 +533,13 @@ export default function Register() {
                 </TabsContent>
 
                 <TabsContent value="personal" className="space-y-4 mt-6">
+                  {formErrors.personal && (
+                    <Alert variant="destructive" className="bg-red-500/10 border-red-500/30">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{formErrors.personal}</AlertDescription>
+                    </Alert>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="dateOfBirth">Date of Birth</Label>
@@ -487,6 +666,13 @@ export default function Register() {
                 </TabsContent>
 
                 <TabsContent value="preferences" className="space-y-4 mt-6">
+                  {formErrors.preferences && (
+                    <Alert variant="destructive" className="bg-red-500/10 border-red-500/30">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{formErrors.preferences}</AlertDescription>
+                    </Alert>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="preferences.language">Language</Label>

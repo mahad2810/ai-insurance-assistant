@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { MessageSquare, Upload, Bot, ShieldCheck, LogIn } from "lucide-react";
+import { MessageSquare, Upload, Bot, ShieldCheck, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -59,6 +59,12 @@ export default function LandingHero() {
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   <LogIn className="mr-2 h-5 w-5" />
                   Sign In
+                </Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button size="lg" variant="outline" className="border-white/20 text-white bg-white/5 hover:bg-white/10">
+                  <UserPlus className="mr-2 h-5 w-5" />
+                  Sign Up
                 </Button>
               </Link>
             </>

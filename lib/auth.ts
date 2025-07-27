@@ -90,13 +90,17 @@ export async function authenticateUser(email: string, password: string) {
   await dbConnect();
   
   const user = await User.findOne({ email });
-  if (!user || !user.password) {
-    return null;
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  if (!user.password) {
+    throw new Error('No password set for this user. Try using a social login option.');
   }
   
   const isValid = await verifyPassword(password, user.password);
   if (!isValid) {
-    return null;
+    throw new Error('Invalid password');
   }
   
   // Update last login time and stats

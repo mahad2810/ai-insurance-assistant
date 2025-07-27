@@ -8,6 +8,7 @@ export async function middleware(req: NextRequest) {
   const publicPaths = [
     '/',
     '/auth/signin',
+    '/auth/register',
     '/auth/error',
     '/api/auth'
   ];
