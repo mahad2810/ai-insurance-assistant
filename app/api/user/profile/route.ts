@@ -4,6 +4,8 @@ import dbConnect from "@/lib/mongodb";
 import { User } from "@/lib/models";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
+export const dynamic = 'force-dynamic';
+
 // Get user profile
 export async function GET(req: NextRequest) {
   try {
