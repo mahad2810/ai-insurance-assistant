@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "name": "ai-insurance-query-system",
+  "functions": {
+    "app/api/parse-pdf/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/ask/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/translate/route.ts": {
+      "maxDuration": 15
+    },
+    "app/api/chat/*/route.ts": {
+      "maxDuration": 10
+    }
+  },
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "regions": ["bom1"],
+  "framework": "nextjs"
+}
