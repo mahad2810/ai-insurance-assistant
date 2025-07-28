@@ -42,29 +42,17 @@ export async function middleware(req: NextRequest) {
     });
   }
 
-  // Try with raw cookie parsing for mobile browsers
+  // Try with different secureCookie setting for mobile browsers
   if (!token) {
-    const cookieName = process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token';
-    const cookies = req.headers.get('cookie');
-    if (cookies && cookies.includes(cookieName)) {
-      token = await getToken({
-        req,
-        secret: process.env.NEXTAUTH_SECRET,
-        raw: true
-      });
-    }
-  }
-
-  // Debug logging (remove in production)
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Middleware: ${path}, hasToken: ${!!token}, isPublic: ${isPublicPath}`);
+    token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+      secureCookie: process.env.NODE_ENV === 'production'
+    });
   }
 
   // If there is no session and the path is not public, redirect to signin
   if (!token && !path.includes('/api/')) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Redirecting ${path} to signin - no token found`);
-    }
     const url = new URL('/auth/signin', req.url);
     url.searchParams.set('callbackUrl', encodeURI(req.url));
     return NextResponse.redirect(url);
@@ -72,7 +60,6 @@ export async function middleware(req: NextRequest) {
 
   // For API routes, return 401 if not authenticated
   if (!token && path.includes('/api/')) {
-    console.log(`API route ${path} - no token found, returning 401`);
     return new NextResponse(
       JSON.stringify({ success: false, message: 'Authentication required' }),
       { status: 401, headers: { 'content-type': 'application/json' } }

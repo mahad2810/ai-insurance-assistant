@@ -31,17 +31,10 @@ export default function MobileAuthGuard({
     // Wait for session to be determined
     if (status === "loading") return
 
-    // Debug logging for mobile
-    if (typeof window !== 'undefined') {
-      console.log('MobileAuthGuard:', { status, requireAuth, redirectTo, isClient })
-    }
-
     if (requireAuth && status === "unauthenticated") {
       // Use window.location for better mobile compatibility
       const currentUrl = window.location.pathname + window.location.search
       const redirectUrl = `${redirectTo}?callbackUrl=${encodeURIComponent(currentUrl)}`
-
-      console.log('Redirecting unauthenticated user to:', redirectUrl)
 
       // Add a small delay to ensure proper cleanup
       setTimeout(() => {
@@ -52,7 +45,6 @@ export default function MobileAuthGuard({
 
     if (!requireAuth && status === "authenticated" && redirectTo) {
       // Redirect authenticated users away from auth pages
-      console.log('Redirecting authenticated user to:', redirectTo)
       setTimeout(() => {
         window.location.href = redirectTo
       }, 100)
