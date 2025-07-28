@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import MobileAuthGuard from "@/components/mobile-auth-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +24,11 @@ export default function SignIn() {
     email?: string;
     password?: string;
   }>({});
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+
+  // Get callback URL from search params
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
   const validateFields = () => {
     const errors: {
@@ -75,10 +79,11 @@ export default function SignIn() {
           title: "Login successful",
           description: "Welcome back!",
         });
-        // Force a small delay to ensure session is established
+        // Force a longer delay and use window.location for better mobile compatibility
         setTimeout(() => {
-          router.push("/dashboard");
-        }, 100);
+          // Use window.location.href for better mobile browser compatibility
+          window.location.href = callbackUrl;
+        }, 500);
       } else {
         setFormError("Something went wrong during login");
         toast({
@@ -100,11 +105,12 @@ export default function SignIn() {
   };
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" });
+    signIn("google", { callbackUrl });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <MobileAuthGuard requireAuth={false} redirectTo={callbackUrl}>
+      <div className="min-h-screen flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -261,5 +267,6 @@ export default function SignIn() {
         </Card>
       </motion.div>
     </div>
+    </MobileAuthGuard>
   );
-} 
+}

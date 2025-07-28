@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import EditableProfile from "@/components/editable-profile";
+import MobileAuthGuard from "@/components/mobile-auth-guard";
 
 interface ChatSession {
   chatId: string;
@@ -57,11 +58,7 @@ export default function Dashboard() {
     setUserProfile(updatedProfile);
   };
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
+  // Remove the manual redirect logic since MobileAuthGuard handles it
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -170,7 +167,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen">
+    <MobileAuthGuard requireAuth={true}>
+      <div className="min-h-screen">
       <div className="container mx-auto px-4 py-8 pt-20">
         {/* Header */}
         <motion.div
@@ -359,5 +357,6 @@ export default function Dashboard() {
         </motion.div>
       </div>
     </div>
+    </MobileAuthGuard>
   );
 }

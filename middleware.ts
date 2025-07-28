@@ -33,13 +33,26 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET
   });
 
-  // Try alternative token retrieval if first attempt fails
+  // Try alternative token retrieval methods for better mobile compatibility
   if (!token) {
     token = await getToken({
       req,
       secret: process.env.NEXTAUTH_SECRET,
       cookieName: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token'
     });
+  }
+
+  // Try with raw cookie parsing for mobile browsers
+  if (!token) {
+    const cookieName = process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token';
+    const cookies = req.headers.get('cookie');
+    if (cookies && cookies.includes(cookieName)) {
+      token = await getToken({
+        req,
+        secret: process.env.NEXTAUTH_SECRET,
+        raw: true
+      });
+    }
   }
 
   // Debug logging (remove in production)
