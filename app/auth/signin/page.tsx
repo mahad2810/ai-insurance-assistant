@@ -70,12 +70,22 @@ export default function SignIn() {
           description: "Invalid email or password",
           variant: "destructive",
         });
-      } else {
+      } else if (result?.ok) {
         toast({
           title: "Login successful",
           description: "Welcome back!",
         });
-        router.push("/dashboard");
+        // Force a small delay to ensure session is established
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 100);
+      } else {
+        setFormError("Something went wrong during login");
+        toast({
+          title: "Login failed",
+          description: "Something went wrong during login",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       setFormError("Something went wrong. Please try again.");

@@ -6,6 +6,7 @@ type ToastProps = {
   title?: string
   description?: string
   variant?: "default" | "destructive"
+  open?: boolean
 }
 
 type ToastActionElement = React.ReactElement
@@ -16,11 +17,11 @@ type ToasterToast = {
   description?: string
   variant?: "default" | "destructive"
   action?: ToastActionElement
-  open: boolean
+  open?: boolean
 }
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 5000
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -158,6 +159,9 @@ function toast({ ...props }: Omit<ToasterToast, "id">) {
       open: true,
     },
   })
+
+  // Automatically start the removal timer
+  addToRemoveQueue(id)
 
   return {
     id: id,

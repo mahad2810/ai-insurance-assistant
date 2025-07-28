@@ -56,19 +56,19 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: AuthUser }) {
+    async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = (user as AuthUser).id;
       }
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
+    async session({ session, token }) {
       if (session?.user) {
-        session.user.id = token.id as string;
+        (session.user as any).id = token.id as string;
       }
       return session;
     },
-    async signIn({ user, account }: { user: AuthUser; account: any }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google") {
         try {
           await dbConnect();
@@ -97,6 +97,21 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
+      }
+    }
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

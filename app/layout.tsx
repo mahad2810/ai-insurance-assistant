@@ -6,6 +6,7 @@ import Navbar from "@/components/navbar"
 import AnimatedBackground from "@/components/animated-background"
 import AuthProvider from "@/components/auth-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 // Import initialization script (runs only on server)
 import "@/lib/init"
 
@@ -28,10 +29,11 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="dark">
             <AnimatedBackground />
-            <div className="relative z-10">
+            <div className="relative z-[1]">
               <Navbar />
               <main className="min-h-screen">{children}</main>
             </div>
+            <Toaster />
           </ThemeProvider>
         </AuthProvider>
       </body>

@@ -3,47 +3,69 @@ import { getToken } from "next-auth/jwt";
 
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  
+
   // Define public paths that don't require authentication
   const publicPaths = [
     '/',
+    '/about',
     '/auth/signin',
     '/auth/register',
     '/auth/error',
     '/api/auth'
   ];
-  
+
   // Check if the path is public or starts with public paths
   const isPublicPath = publicPaths.some(
-    publicPath => 
-      path === publicPath || 
+    publicPath =>
+      path === publicPath ||
       path.startsWith(`${publicPath}/`) ||
       path.match(/\.(jpg|png|svg|ico)$/) // Static assets
   );
-  
+
   // If it's a public path, allow the request
   if (isPublicPath) {
     return NextResponse.next();
   }
-  
-  // Get the session token
-  const token = await getToken({ req });
-  
+
+  // Get the session token with multiple attempts and different configurations
+  let token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET
+  });
+
+  // Try alternative token retrieval if first attempt fails
+  if (!token) {
+    token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+      cookieName: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token'
+    });
+  }
+
+  // Debug logging (remove in production)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Middleware: ${path}, hasToken: ${!!token}, isPublic: ${isPublicPath}`);
+  }
+
   // If there is no session and the path is not public, redirect to signin
   if (!token && !path.includes('/api/')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Redirecting ${path} to signin - no token found`);
+    }
     const url = new URL('/auth/signin', req.url);
     url.searchParams.set('callbackUrl', encodeURI(req.url));
     return NextResponse.redirect(url);
   }
-  
+
   // For API routes, return 401 if not authenticated
   if (!token && path.includes('/api/')) {
+    console.log(`API route ${path} - no token found, returning 401`);
     return new NextResponse(
       JSON.stringify({ success: false, message: 'Authentication required' }),
       { status: 401, headers: { 'content-type': 'application/json' } }
     );
   }
-  
+
   return NextResponse.next();
 }
 

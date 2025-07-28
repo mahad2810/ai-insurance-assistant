@@ -93,30 +93,42 @@ export async function PUT(
 
 // DELETE - Delete a specific chat session
 export async function DELETE(
-  req: NextRequest, 
+  req: NextRequest,
   { params }: { params: { chatId: string } }
 ) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
-        { success: false, error: 'Authentication required' }, 
+        { success: false, error: 'Authentication required' },
         { status: 401 }
       );
     }
-    
+
+    const userId = session.user.id;
     const { chatId } = params;
-    
-    // In a real app, you'd delete the chat from your database
-    // For now, we'll just return success
-    console.log(`Chat ${chatId} would be deleted here`);
-    
+
+    await dbConnect();
+
+    // Verify ownership and delete the chat session
+    const chatSession = await ChatSession.findOne({ chatId, userId });
+    if (!chatSession) {
+      return NextResponse.json(
+        { success: false, error: 'Chat session not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete the chat session and its messages
+    await ChatSession.deleteOne({ chatId, userId });
+    await Message.deleteMany({ chatId });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(`Error deleting chat ${params.chatId}:`, error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete chat' }, 
+      { success: false, error: 'Failed to delete chat' },
       { status: 500 }
     );
   }
-} 
+}

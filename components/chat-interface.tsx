@@ -79,7 +79,7 @@ interface ChatInterfaceProps {
 }
 
 export default function ChatInterface({ chatId }: ChatInterfaceProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { toast } = useToast();
   
   const [messages, setMessages] = useState<Message[]>([]);
@@ -162,11 +162,13 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
       const response = await fetch('/api/chat');
       const data = await response.json();
       
-      if (data.success && data.chats) {
-        setChatSessions(data.chats.map((chat: any) => ({
-          ...chat,
+      if (data.success && data.chatSessions) {
+        setChatSessions(data.chatSessions.map((chat: any) => ({
+          id: chat.chatId,
+          title: chat.title,
           createdAt: new Date(chat.createdAt),
-          updatedAt: new Date(chat.updatedAt)
+          updatedAt: new Date(chat.updatedAt),
+          messageCount: chat.messageCount || 0
         })));
       }
     } catch (error) {
@@ -178,13 +180,15 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
     try {
       // Replace with your actual API endpoint for creating a new chat
       const response = await fetch('/api/chat', {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'New Chat' })
       });
       const data = await response.json();
-      
-      if (data.success) {
+
+      if (data.success && data.chatSession) {
         // Redirect to the new chat
-        window.location.href = `/chat?id=${data.chatId}`;
+        window.location.href = `/chat?id=${data.chatSession.chatId}`;
       }
     } catch (error) {
       console.error("Failed to create new chat:", error);
@@ -842,6 +846,21 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
       </motion.div>
     );
   };
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // Redirect to signin if not authenticated
+  if (status === "unauthenticated") {
+    window.location.href = "/auth/signin";
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100">

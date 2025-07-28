@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import EditableProfile from "@/components/editable-profile";
 
 interface ChatSession {
   chatId: string;
@@ -43,13 +44,17 @@ export default function Dashboard() {
     try {
       const response = await fetch("/api/user/profile");
       const data = await response.json();
-      
+
       if (data.success) {
         setUserProfile(data.user);
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
     }
+  };
+
+  const handleProfileUpdate = (updatedProfile: any) => {
+    setUserProfile(updatedProfile);
   };
 
   useEffect(() => {
@@ -166,40 +171,38 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pt-20">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
+          className="text-center mb-8"
         >
-          <div>
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              Welcome back, {userProfile?.fullName || session?.user?.name}!
-            </h1>
-            <p className="text-gray-300">
-              {userProfile?.occupation && userProfile?.company 
-                ? `${userProfile.occupation} at ${userProfile.company}` 
-                : "Manage your insurance document analysis and chat history"
-              }
-            </p>
-            {userProfile?.subscription && (
-              <div className="mt-2">
-                <Badge variant="outline" className="capitalize">
-                  {userProfile.subscription.plan} Plan
-                </Badge>
-              </div>
-            )}
-          </div>
-          <Button 
-            onClick={createNewChat} 
-            className="mt-4 md:mt-0 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            Welcome back{userProfile?.firstName ? `, ${userProfile.firstName}` : ''}!
+          </h1>
+          <p className="text-gray-300 text-lg">
+            Manage your insurance document analysis and chat history
+          </p>
+          <Button
+            onClick={createNewChat}
+            className="mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
             <Plus className="mr-2 h-4 w-4" />
             New Query
           </Button>
         </motion.div>
+
+        {/* Editable User Profile */}
+        {userProfile && (
+          <div className="mb-8">
+            <EditableProfile
+              userProfile={userProfile}
+              onProfileUpdate={handleProfileUpdate}
+            />
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
