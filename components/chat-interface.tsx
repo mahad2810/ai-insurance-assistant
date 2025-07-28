@@ -850,8 +850,14 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
   // Show loading state while checking authentication
   if (status === "loading") {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-900">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      <div className="flex chat-container items-center justify-center bg-gray-900 pt-14 sm:pt-16">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+            <span className="text-white font-bold text-xl">AI</span>
+          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-300 text-sm">Loading your chat...</p>
+        </div>
       </div>
     );
   }
@@ -863,10 +869,10 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-900 text-gray-100">
+    <div className="flex bg-gray-900 text-gray-100 pt-14 sm:pt-16 chat-container">
       {/* Left Sidebar - Chat History */}
-      <div 
-        className={`flex flex-col border-r border-white/10 bg-gray-900/95 ${
+      <div
+        className={`hidden lg:flex flex-col border-r border-white/10 bg-gray-900/95 ${
           sidebarCollapsed ? 'w-16' : 'w-64'
         } transition-all duration-200 ease-in-out z-20`}
       >
@@ -973,21 +979,23 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
       </div>
       
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
         {/* Header */}
-        <div className="border-b border-white/10 px-4 py-3 glass flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="border-b border-white/10 px-3 sm:px-4 py-3 glass flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Mobile sidebar toggle */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 md:hidden"
+              className="h-9 w-9 p-0 lg:hidden"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             >
               <Menu className="h-4 w-4" />
             </Button>
-            <MessageSquare className="w-6 h-6 text-blue-400" />
-            <h1 className="text-xl font-semibold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Insurance Assistant</h1>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+            <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Insurance Assistant</h1>
           </div>
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
@@ -1138,15 +1146,15 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
         )}
 
         {/* Input Area - Add voice button here */}
-        <div className="border-t border-white/10 px-6 py-4 glass absolute bottom-0 left-0 right-0">
-          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex items-end space-x-3">
+        <div className="border-t border-white/10 px-3 sm:px-6 py-3 sm:py-4 glass absolute bottom-0 left-0 right-0">
+          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex items-end space-x-2 sm:space-x-3">
             <div className="flex-1 relative">
               <Textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask about your insurance coverage, claims, or benefits..."
-                className="min-h-[60px] max-h-32 resize-none bg-white/5 border-white/10 focus:border-blue-400 rounded-lg"
+                className="min-h-[50px] sm:min-h-[60px] max-h-32 resize-none bg-white/5 border-white/10 focus:border-blue-400 rounded-lg text-sm sm:text-base"
                 disabled={isLoading || isListening}
               />
               {detectedLanguage && detectedLanguage !== "en" && (
@@ -1221,13 +1229,13 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
               <Button
                 type="submit"
                 disabled={isLoading || isListening || !query.trim()}
-                className="h-10 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg"
+                className="h-10 sm:h-12 px-3 sm:px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    <span className="mr-2">Send</span>
+                    <span className="mr-2 hidden sm:inline">Send</span>
                     <Send className="w-4 h-4" />
                   </>
                 )}
