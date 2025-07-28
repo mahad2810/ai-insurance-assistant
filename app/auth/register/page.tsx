@@ -295,34 +295,45 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 py-8 sm:py-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
+        className="w-full max-w-2xl"
       >
-        <Card className="w-full max-w-2xl glass">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Create Account</CardTitle>
-            <CardDescription className="text-center text-gray-300">
+        <Card className="w-full glass shadow-2xl border-white/20">
+          <CardHeader className="space-y-2 pb-6">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-lg">AI</span>
+              </div>
+            </div>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              Create Account
+            </CardTitle>
+            <CardDescription className="text-center text-gray-300 text-sm sm:text-base">
               Enter your information to create your account
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit}>
               <Tabs value={currentTab} onValueChange={setCurrentTab}>
-                <TabsList className="grid w-full grid-cols-3 bg-white/5">
-                  <TabsTrigger value="basic" className="flex items-center space-x-2 data-[state=active]:bg-white/10">
-                    <User className="w-4 h-4" />
-                    <span>Basic</span>
+                <TabsList className="grid w-full grid-cols-3 bg-white/5 h-12 sm:h-14 rounded-xl">
+                  <TabsTrigger value="basic" className="flex items-center space-x-1 sm:space-x-2 data-[state=active]:bg-white/10 data-[state=active]:shadow-lg transition-all duration-300 text-xs sm:text-sm">
+                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Basic</span>
+                    <span className="sm:hidden">1</span>
                   </TabsTrigger>
-                  <TabsTrigger value="personal" className="flex items-center space-x-2 data-[state=active]:bg-white/10">
-                    <MapPin className="w-4 h-4" />
-                    <span>Personal</span>
+                  <TabsTrigger value="personal" className="flex items-center space-x-1 sm:space-x-2 data-[state=active]:bg-white/10 data-[state=active]:shadow-lg transition-all duration-300 text-xs sm:text-sm">
+                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Personal</span>
+                    <span className="sm:hidden">2</span>
                   </TabsTrigger>
-                  <TabsTrigger value="preferences" className="flex items-center space-x-2 data-[state=active]:bg-white/10">
-                    <Briefcase className="w-4 h-4" />
-                    <span>Preferences</span>
+                  <TabsTrigger value="preferences" className="flex items-center space-x-1 sm:space-x-2 data-[state=active]:bg-white/10 data-[state=active]:shadow-lg transition-all duration-300 text-xs sm:text-sm">
+                    <Briefcase className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Preferences</span>
+                    <span className="sm:hidden">3</span>
                   </TabsTrigger>
                 </TabsList>
 

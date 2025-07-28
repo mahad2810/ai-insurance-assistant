@@ -12,10 +12,7 @@ import {
   MessageSquare,
   History,
   Info,
-  LayoutDashboard,
-  FileText,
-  HelpCircle,
-  Settings
+  LayoutDashboard
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useSession, signOut } from "next-auth/react"
@@ -39,8 +36,6 @@ export default function Navbar() {
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "New Chat", href: "/chat", icon: MessageSquare },
     { name: "History", href: "/history", icon: History },
-    { name: "Documents", href: "/documents", icon: FileText },
-    { name: "Help", href: "/help", icon: HelpCircle },
     { name: "About", href: "/about", icon: Info },
   ]
 
@@ -64,16 +59,16 @@ export default function Navbar() {
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-gray-900/20 border-b border-white/10"
+      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-gray-900/90 sm:bg-gray-900/20 border-b border-white/10 shadow-lg"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AI</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-xs sm:text-sm">AI</span>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               InsureAI
             </span>
           </Link>
@@ -91,9 +86,9 @@ export default function Navbar() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`flex items-center space-x-1 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                         isActive
-                          ? "bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-blue-400"
+                          ? "bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-blue-400 shadow-lg"
                           : "text-gray-300 hover:text-white hover:bg-white/10"
                       }`}
                     >
@@ -144,13 +139,7 @@ export default function Navbar() {
                       </Link>
                     )
                   })}
-                  <DropdownMenuSeparator className="bg-white/10" />
-                  <Link href="/settings">
-                    <DropdownMenuItem className="text-gray-200 focus:bg-white/10 focus:text-white cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </DropdownMenuItem>
-                  </Link>
+
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -160,19 +149,6 @@ export default function Navbar() {
           <div className="flex items-center space-x-2">
             {isAuthenticated && (
               <>
-                {/* Settings Link - Desktop Only */}
-                <Link
-                  href="/settings"
-                  className={`hidden lg:flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    pathname === "/settings"
-                      ? "bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-blue-400"
-                      : "text-gray-300 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </Link>
-
                 {/* Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

@@ -110,17 +110,25 @@ function SignInForm() {
 
   return (
     <MobileAuthGuard requireAuth={false} redirectTo={callbackUrl}>
-      <div className="min-h-screen flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <Card className="w-full max-w-md glass">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Sign In</CardTitle>
-            <CardDescription className="text-center text-gray-300">
-              Enter your credentials to access your account
+      <div className="min-h-screen flex items-center justify-center p-4 py-8 sm:py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="w-full max-w-md"
+        >
+          <Card className="w-full glass shadow-2xl border-white/20">
+          <CardHeader className="space-y-2 pb-6">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-lg">AI</span>
+              </div>
+            </div>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              Welcome Back
+            </CardTitle>
+            <CardDescription className="text-center text-gray-300 text-sm sm:text-base">
+              Sign in to continue to your AI Insurance Assistant
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -216,13 +224,13 @@ function SignInForm() {
                   </Button>
                 </div>
               </div>
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 h-12 text-base font-semibold"
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign In
+                {isLoading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
             
@@ -235,8 +243,12 @@ function SignInForm() {
               </div>
             </div>
             
-            <Button variant="outline" onClick={handleGoogleSignIn} className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10">
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+            <Button
+              variant="outline"
+              onClick={handleGoogleSignIn}
+              className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10 shadow-lg hover:shadow-xl transition-all duration-300 h-12 text-base font-semibold"
+            >
+              <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"

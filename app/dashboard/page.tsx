@@ -168,26 +168,31 @@ export default function Dashboard() {
 
   return (
     <MobileAuthGuard requireAuth={true}>
-      <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8 pt-20">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="container mx-auto px-4 py-6 sm:py-8 pt-20 sm:pt-24">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-8"
+          className="text-center mb-6 sm:mb-8"
         >
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <span className="text-white font-bold text-xl sm:text-2xl">AI</span>
+            </div>
+          </div>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent leading-tight">
             Welcome back{userProfile?.firstName ? `, ${userProfile.firstName}` : ''}!
           </h1>
-          <p className="text-gray-300 text-lg">
+          <p className="text-gray-300 text-base sm:text-lg mb-6 max-w-2xl mx-auto px-4">
             Manage your insurance document analysis and chat history
           </p>
           <Button
             onClick={createNewChat}
-            className="mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 h-12 px-8 text-base font-semibold"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 h-5 w-5" />
             New Query
           </Button>
         </motion.div>
@@ -203,19 +208,22 @@ export default function Dashboard() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <Card className="glass">
+            <Card className="glass hover:bg-white/10 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Chats</CardTitle>
-                <MessageSquare className="h-4 w-4 text-blue-400" />
+                <CardTitle className="text-sm font-medium text-gray-200">Total Chats</CardTitle>
+                <div className="p-2 bg-blue-500/20 rounded-lg">
+                  <MessageSquare className="h-4 w-4 text-blue-400" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{chatSessions.length}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-white">{chatSessions.length}</div>
+                <p className="text-xs text-gray-400 mt-1">Total conversations</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -225,13 +233,15 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <Card className="glass">
+            <Card className="glass hover:bg-white/10 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">This Week</CardTitle>
-                <Calendar className="h-4 w-4 text-purple-400" />
+                <CardTitle className="text-sm font-medium text-gray-200">This Week</CardTitle>
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Calendar className="h-4 w-4 text-purple-400" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-2xl sm:text-3xl font-bold text-white">
                   {chatSessions.filter(session => {
                     const sessionDate = new Date(session.createdAt);
                     const weekAgo = new Date();
@@ -239,6 +249,7 @@ export default function Dashboard() {
                     return sessionDate > weekAgo;
                   }).length}
                 </div>
+                <p className="text-xs text-gray-400 mt-1">Recent activity</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -247,14 +258,18 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
+            className="sm:col-span-2 lg:col-span-1"
           >
-            <Card className="glass">
+            <Card className="glass hover:bg-white/10 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Documents Analyzed</CardTitle>
-                <FileText className="h-4 w-4 text-blue-400" />
+                <CardTitle className="text-sm font-medium text-gray-200">Documents Analyzed</CardTitle>
+                <div className="p-2 bg-green-500/20 rounded-lg">
+                  <FileText className="h-4 w-4 text-green-400" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{chatSessions.length}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-white">{chatSessions.length}</div>
+                <p className="text-xs text-gray-400 mt-1">Files processed</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -266,89 +281,96 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <Card className="glass">
-            <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Chat History</CardTitle>
-              <CardDescription className="text-gray-300">
+          <Card className="glass shadow-xl border-white/20">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl sm:text-2xl bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                Chat History
+              </CardTitle>
+              <CardDescription className="text-gray-300 text-sm sm:text-base">
                 View and manage your previous insurance document analyses
               </CardDescription>
-              <div className="relative">
+              <div className="relative mt-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   placeholder="Search chats..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10"
+                  className="pl-10 bg-white/5 border-white/10 h-12 text-base focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
                 />
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               {filteredSessions.length === 0 ? (
-                <div className="text-center py-12">
-                  <MessageSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-white mb-2">
+                <div className="text-center py-8 sm:py-12">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
+                    <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-blue-400" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
                     {searchQuery ? "No matching chats found" : "No chats yet"}
                   </h3>
-                  <p className="text-gray-300 mb-4">
-                    {searchQuery 
-                      ? "Try adjusting your search terms" 
-                      : "Start by creating your first insurance document analysis"
+                  <p className="text-gray-300 mb-6 text-sm sm:text-base max-w-md mx-auto">
+                    {searchQuery
+                      ? "Try adjusting your search terms to find what you're looking for"
+                      : "Start by creating your first insurance document analysis and unlock AI-powered insights"
                     }
                   </p>
                   {!searchQuery && (
-                    <Button 
+                    <Button
                       onClick={createNewChat}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 h-12 px-8 text-base font-semibold"
                     >
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus className="mr-2 h-5 w-5" />
                       Create Your First Query
                     </Button>
                   )}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {filteredSessions.map((session) => (
-                    <div
+                <div className="space-y-3 sm:space-y-4">
+                  {filteredSessions.map((session, index) => (
+                    <motion.div
                       key={session.chatId}
-                      className="flex items-center justify-between p-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className="flex items-center justify-between p-3 sm:p-4 border border-white/10 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl"
                     >
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className="p-2 bg-blue-500/20 rounded-lg">
-                          <MessageSquare className="h-5 w-5 text-blue-400" />
+                      <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+                        <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl shadow-lg">
+                          <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-white truncate">
+                          <h3 className="font-semibold text-white truncate text-sm sm:text-base">
                             {session.title}
                           </h3>
                           <div className="flex items-center space-x-2 mt-1">
-                            <Clock className="h-3 w-3 text-gray-400" />
-                            <span className="text-sm text-gray-400">
+                            <Clock className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm text-gray-400 truncate">
                               {formatDate(session.updatedAt)}
                             </span>
                             {session.messageCount && (
-                              <Badge variant="secondary" className="text-xs bg-white/10">
+                              <Badge variant="secondary" className="text-xs bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border-blue-500/30 hidden sm:inline-flex">
                                 {session.messageCount} messages
                               </Badge>
                             )}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                         <Link href={`/chat?id=${session.chatId}`}>
-                          <Button variant="ghost" size="sm" className="hover:bg-white/10">
-                            <ArrowRight className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="hover:bg-white/10 p-2 sm:p-3 rounded-lg">
+                            <ArrowRight className="h-4 w-4 text-blue-400" />
                           </Button>
                         </Link>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteChat(session.chatId)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 p-2 sm:p-3 rounded-lg"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               )}
