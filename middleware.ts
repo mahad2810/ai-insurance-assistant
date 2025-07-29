@@ -13,7 +13,10 @@ export async function middleware(req: NextRequest) {
     '/auth/register',
     '/auth/error',
     '/api/auth',
-    '/api/ask'
+    '/api/ask',
+    '/api/chat',
+    '/api/translate',
+    '/api/detect-language'
   ];
 
   // Check if the path is public or starts with public paths
