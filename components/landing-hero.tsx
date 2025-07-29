@@ -79,7 +79,7 @@ export default function LandingHero() {
                   Sign Up
                 </Button>
               </Link>
-              <Link href="/chat?mode=try-once" className="w-full sm:w-auto">
+              <Link href="/try-chat" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
                   variant="outline"
