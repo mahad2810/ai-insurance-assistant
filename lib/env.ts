@@ -5,6 +5,7 @@ import { z } from 'zod';
 const envSchema = z.object({
   // API Keys
   GEMINI_API_KEY: z.string().default('AIzaSyBhAGZ8TTDhnv8aO4XFIV9oKIxFPkU_1w8'),
+  OPENAI_API_KEY: z.string().optional(),
   VIRUS_TOTAL_API_KEY: z.string().optional(),
 
   // Google Cloud Configuration

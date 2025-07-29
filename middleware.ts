@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
     '/auth/error',
     '/api/auth',
     '/api/ask',
-    '/api/chat',
+    '/api/try-chat',
     '/api/translate',
     '/api/detect-language'
   ];

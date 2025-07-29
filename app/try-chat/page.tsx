@@ -1,13 +1,10 @@
 "use client"
 
-import { useSearchParams } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
-import ChatInterface from '@/components/chat-interface';
-import { Suspense } from 'react';
 import Link from 'next/link';
+import TryChatInterface from '@/components/try-chat-interface';
+import { Suspense } from 'react';
 
 function TryChatContent() {
-  const chatId = uuidv4(); // Always create a new chat ID for try-once sessions
 
   return (
     <div className="relative">
@@ -28,7 +25,7 @@ function TryChatContent() {
         </div>
       </div>
       <div className="pt-24"> {/* Add padding to account for the banner */}
-        <ChatInterface chatId={chatId} isTryOnceMode={true} />
+        <TryChatInterface />
       </div>
     </div>
   );
