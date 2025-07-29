@@ -31,21 +31,20 @@ export default function LandingHero() {
   const isAuthenticated = !!session;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 w-full">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="text-center mb-8 sm:mb-16"
+        className="text-center mb-6 sm:mb-12"
       >
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">
+        <h1 className="text-2xl xs:text-3xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-3 sm:mb-6 leading-tight">
           AI Insurance Assistant
         </h1>
-        <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto mb-6 sm:mb-8 px-2">
+        <p className="text-sm xs:text-base sm:text-xl text-gray-300 max-w-3xl mx-auto mb-5 sm:mb-8 px-1 xs:px-2">
           Unlock insights from your insurance documents instantly. Get clear answers about your coverage, claims, and benefits with AI-powered assistance.
         </p>
-        
-        <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 w-full max-w-md mx-auto sm:max-w-none sm:flex-row">
+        <div className="flex flex-col items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-md mx-auto sm:max-w-none sm:flex-row">
           {isAuthenticated ? (
             <>
               <Button
@@ -85,7 +84,7 @@ export default function LandingHero() {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-8 sm:mt-12">
+      <div className="grid grid-cols-1 gap-4 xs:gap-5 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 lg:gap-8 mt-6 sm:mt-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

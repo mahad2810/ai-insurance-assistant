@@ -21,6 +21,65 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
+    }),
+    CredentialsProvider({
+      id: "credentials",
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+        name: { label: "Name", type: "text" },
+        image: { label: "Image", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email) {
+          throw new Error("Email is required");
+        }
+        
+        try {
+          // If password is provided, use normal authentication
+          if (credentials.password) {
+            const user = await authenticateUser(credentials.email, credentials.password);
+            return user;
+          }
+          
+          // If no password but name/image is provided, it's a Google sign-in
+          if (credentials.name || credentials.image) {
+            await dbConnect();
+            let user = await User.findOne({ email: credentials.email });
+            
+            if (!user) {
+              // Create new user for Google sign-in
+              user = await User.create({
+                userId: uuidv4(),
+                email: credentials.email,
+                name: credentials.name,
+                image: credentials.image,
+                provider: "google"
+              });
+            }
+            
+            return {
+              id: user.userId,
+              email: user.email,
+              name: user.name,
+              image: user.image
+            };
+          }
+          
+          throw new Error("Invalid credentials");
+        } catch (error: any) {
+          const errorMessage = error.message || "Authentication failed";
+          throw new Error(errorMessage);
+        }
+      },
     }),
     CredentialsProvider({
       name: "credentials",

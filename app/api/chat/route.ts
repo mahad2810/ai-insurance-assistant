@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { v4 as uuidv4 } from 'uuid';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { v4 as uuidv4 } from "uuid";
+import { authOptions } from "../auth/[...nextauth]/route";
+import dbConnect from "@/lib/mongodb";
+import { ChatSession } from "@/lib/models";
 
 // Sample chats for demonstration (in a real app, this would come from a database)
 const sampleChats = [
@@ -36,11 +38,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
-    // In a real app, you'd query your database for user's chats
-    // For now, we'll return sample chats
+    await dbConnect();
+    
+    // Fetch chats for the specific user
+    const chatSessions = await ChatSession.find({ userId: session.user.id })
+      .sort({ updatedAt: -1 })
+      .lean();
+
     return NextResponse.json({
       success: true,
-      chatSessions: sampleChats
+      chatSessions
     });
   } catch (error) {
     console.error('Error fetching chats:', error);
@@ -58,16 +65,18 @@ export async function POST(req: NextRequest) {
 
     const { title } = await req.json();
 
-    // In a real app, you'd create a new chat in your database
-    // For now, we'll return a new chat session
+    // Create a new chat session in the database
+    await dbConnect();
+    
     const newChatId = uuidv4();
-    const newChatSession = {
+    const newChatSession = await ChatSession.create({
       chatId: newChatId,
+      userId: session.user.id,
       title: title || 'New Chat',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
       messageCount: 0
-    };
+    });
 
     return NextResponse.json({
       success: true,

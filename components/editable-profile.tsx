@@ -146,7 +146,7 @@ export default function EditableProfile({ userProfile, onProfileUpdate }: Editab
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
     >
-      <Card className="glass">
+      <Card className="glass w-full">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
@@ -192,7 +192,7 @@ export default function EditableProfile({ userProfile, onProfileUpdate }: Editab
         </CardHeader>
         <CardContent>
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-white/5 rounded-lg">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-2 sm:p-4 bg-white/5 rounded-lg">
             <div className="text-center">
               <p className="text-sm text-gray-400">Member Since</p>
               <p className="text-white font-medium">
@@ -220,7 +220,7 @@ export default function EditableProfile({ userProfile, onProfileUpdate }: Editab
           </div>
 
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white/5">
+            <TabsList className="grid w-full grid-cols-2 xs:grid-cols-4 bg-white/5 overflow-x-auto">
               <TabsTrigger value="basic" className="flex items-center space-x-2 data-[state=active]:bg-white/10">
                 <User className="w-4 h-4" />
                 <span>Basic</span>
