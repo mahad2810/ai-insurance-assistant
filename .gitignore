@@ -31,7 +31,9 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
+.env.local
+.env.*.local
 
 # vercel
 .vercel
@@ -39,3 +41,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sensitive and temp files
+/temp_storage/
+.env.example
+*.json
+!package.json
+!tsconfig.json
+!vercel.json
+!components.json
+# Ignore service account and secret keys
+*.key
+*.crt
+*.p12
+*.pfx
+# Python cache
+__pycache__/
+*.pyc

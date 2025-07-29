@@ -78,6 +78,23 @@ interface ChatInterfaceProps {
   chatId: string;
 }
 
+// TypeScript: Add missing types for SpeechRecognition
+// @ts-ignore
+interface Window {
+  SpeechRecognition: any;
+  webkitSpeechRecognition: any;
+}
+// @ts-ignore
+declare var SpeechRecognition: any;
+// @ts-ignore
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+// @ts-ignore
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
 export default function ChatInterface({ chatId }: ChatInterfaceProps) {
   const { data: session, status } = useSession();
   const { toast } = useToast();
@@ -97,7 +114,7 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
   
   const [isListening, setIsListening] = useState(false);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<any>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -404,7 +421,7 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
       const SpeechRecognition = window.SpeechRecognition || window['webkitSpeechRecognition'];
       
       if (SpeechRecognition) {
-        const recognition = new SpeechRecognition() as SpeechRecognition;
+        const recognition = new (SpeechRecognition as any)() as any;
         recognition.continuous = false;
         recognition.interimResults = false;
         
@@ -412,7 +429,7 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
         recognition.lang = selectedLanguage || "en-US";
         
         // Handle result
-        recognition.onresult = async (event: SpeechRecognitionEvent) => {
+        recognition.onresult = async (event: any) => {
           const result = event.results[0][0];
           const transcript = result.transcript;
           const confidence = result.confidence;
@@ -431,7 +448,7 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
         };
         
         // Handle errors
-        recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        recognition.onerror = (event: any) => {
           console.error("Speech recognition error:", event.error);
           
           switch (event.error) {
@@ -687,8 +704,9 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
                 li: ({node, ...props}) => <li className="text-gray-200 text-sm" {...props} />,
                 a: ({node, ...props}) => <a className="text-blue-400 hover:underline" {...props} />,
                 blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-600 pl-4 italic text-gray-300 my-3" {...props} />,
-                code: ({node, inline, ...props}) => 
-                  inline 
+                code: ({node, ...props}) => 
+                  // @ts-ignore
+                  (props as any).inline 
                     ? <code className="bg-gray-800 text-gray-200 px-1 py-0.5 rounded text-sm" {...props} />
                     : <code className="block bg-gray-800 text-gray-200 p-3 rounded-md my-3 overflow-x-auto text-sm" {...props} />,
                 em: ({node, ...props}) => <em className="text-gray-200 italic" {...props} />,
@@ -869,7 +887,7 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="flex bg-gray-900 text-gray-100 pt-14 sm:pt-16 chat-container">
+    <div className="flex bg-gray-900 text-gray-100 pt-14 sm:pt-16 chat-container min-h-[calc(100vh-56px)]">
       {/* Left Sidebar - Chat History */}
       <div
         className={`hidden lg:flex flex-col border-r border-white/10 bg-gray-900/95 ${
@@ -980,268 +998,270 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
       
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 h-full overflow-hidden">
-        {/* Header */}
-        <div className="border-b border-white/10 px-3 sm:px-4 py-3 glass flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Mobile sidebar toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 w-9 p-0 lg:hidden"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
-            <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Insurance Assistant</h1>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                <SelectTrigger className="w-[180px] h-8 border-white/10 bg-white/5">
-                  <div className="flex items-center">
-                    <Globe className="w-4 h-4 mr-2 text-blue-400" />
-                    <SelectValue placeholder="Language" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {languages.map(lang => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      <div className="flex items-center">
-                        <span className="mr-2">{lang.code === selectedLanguage ? '✓' : ''}</span>
-                        {lang.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {parsedPDFs.length > 0 && (
-              <Badge variant="outline" className="border-white/20">
-                {parsedPDFs.length} document{parsedPDFs.length > 1 ? 's' : ''} loaded
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div 
-          ref={messagesContainerRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto"
-        >
-          <AnimatePresence>
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full py-16 px-4">
-                <div className="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center mb-6">
-                  <Bot className="w-8 h-8 text-blue-400" />
-                </div>
-                <h2 className="text-xl font-semibold text-white mb-2 text-center">
-                  How can I help you today?
-                </h2>
-                <p className="text-gray-300 text-center max-w-md mb-8">
-                  Upload your insurance documents and ask questions about your coverage, claims, and benefits.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
-                  <div className="p-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-                    <h3 className="font-medium text-white mb-1">Upload a policy</h3>
-                    <p className="text-sm text-gray-300">
-                      Add your insurance documents to get started
-                    </p>
-                  </div>
-                  <div className="p-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-                    <h3 className="font-medium text-white mb-1">Ask a question</h3>
-                    <p className="text-sm text-gray-300">
-                      "Is my knee surgery covered in Pune?"
-                    </p>
-                  </div>
-                </div>
+        <div className="max-w-3xl w-full mx-auto flex flex-col flex-1 h-full">
+          {/* Header */}
+          <div className="border-b border-white/10 px-3 sm:px-4 py-3 glass flex items-center justify-between w-full">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Mobile sidebar toggle */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0 lg:hidden"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-            ) : (
-              <div className="pb-32">
-                {messages.map(renderMessage)}
-              </div>
-            )}
-          </AnimatePresence>
-          
-          {isLoading && (
-            <div className="py-6 px-4 md:px-6">
-              <div className="max-w-3xl mx-auto flex">
-                <div className="mr-4 flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10">
-                    <Bot className="w-4 h-4 text-emerald-400" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
+              <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Insurance Assistant</h1>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                  <SelectTrigger className="w-[180px] h-8 border-white/10 bg-white/5">
+                    <div className="flex items-center">
+                      <Globe className="w-4 h-4 mr-2 text-blue-400" />
+                      <SelectValue placeholder="Language" />
                     </div>
-                    <span className="text-sm text-gray-400">Analyzing your query...</span>
-                  </div>
-                </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {languages.map(lang => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        <div className="flex items-center">
+                          <span className="mr-2">{lang.code === selectedLanguage ? '✓' : ''}</span>
+                          {lang.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Scroll to bottom button */}
-        <AnimatePresence>
-          {showScrollButton && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="fixed bottom-32 right-6"
-            >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={scrollToBottom}
-                      size="sm"
-                      className="rounded-full shadow-lg bg-white/10 hover:bg-white/20 h-9 w-9 p-0"
-                    >
-                      <ArrowDown className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Scroll to bottom</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* File Upload Area */}
-        {files.length > 0 && (
-          <div className="px-6 py-2 bg-blue-900/20 border-t border-white/10">
-            <div className="max-w-3xl mx-auto">
-              <div className="flex flex-wrap gap-2">
-                {files.map((file, index) => (
-                  <div key={index} className="flex items-center space-x-2 bg-white/5 px-3 py-1 rounded-full text-sm">
-                    <FileText className="w-4 h-4 text-blue-400" />
-                    <span className="truncate max-w-32 text-gray-300">{file.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(index)}
-                      className="h-4 w-4 p-0 hover:bg-red-900/30 text-red-300"
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Input Area - Add voice button here */}
-        <div className="border-t border-white/10 px-3 sm:px-6 py-3 sm:py-4 glass absolute bottom-0 left-0 right-0">
-          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex items-end space-x-2 sm:space-x-3">
-            <div className="flex-1 relative">
-              <Textarea
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about your insurance coverage, claims, or benefits..."
-                className="min-h-[50px] sm:min-h-[60px] max-h-32 resize-none bg-white/5 border-white/10 focus:border-blue-400 rounded-lg text-sm sm:text-base"
-                disabled={isLoading || isListening}
-              />
-              {detectedLanguage && detectedLanguage !== "en" && (
-                <Badge className="absolute top-2 right-2 border-blue-500/30 text-blue-400 bg-blue-500/10">
-                  <Globe className="w-3 h-3 mr-1" />
-                  {detectedLanguage.toUpperCase()}
+              
+              {parsedPDFs.length > 0 && (
+                <Badge variant="outline" className="border-white/20">
+                  {parsedPDFs.length} document{parsedPDFs.length > 1 ? 's' : ''} loaded
                 </Badge>
               )}
-              {isListening && (
-                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center">
-                  <span className="flex h-3 w-3 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                  </span>
-                  <span className="ml-2 text-sm text-gray-400">Listening...</span>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div 
+            ref={messagesContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto w-full px-2 sm:px-6"
+          >
+            <AnimatePresence>
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full py-16 px-4">
+                  <div className="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center mb-6">
+                    <Bot className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-white mb-2 text-center">
+                    How can I help you today?
+                  </h2>
+                  <p className="text-gray-300 text-center max-w-md mb-8">
+                    Upload your insurance documents and ask questions about your coverage, claims, and benefits.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+                    <div className="p-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                      <h3 className="font-medium text-white mb-1">Upload a policy</h3>
+                      <p className="text-sm text-gray-300">
+                        Add your insurance documents to get started
+                      </p>
+                    </div>
+                    <div className="p-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                      <h3 className="font-medium text-white mb-1">Ask a question</h3>
+                      <p className="text-sm text-gray-300">
+                        "Is my knee surgery covered in Pune?"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="pb-32">
+                  {messages.map(renderMessage)}
                 </div>
               )}
-            </div>
-            <div className="flex space-x-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isLoading || isListening}
-                      className="h-10 w-10 rounded-lg border-white/20 bg-white/5 hover:bg-white/10"
-                    >
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf"
-                        multiple
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <Paperclip className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Upload PDF</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant={isListening ? "destructive" : "outline"}
-                      size="icon"
-                      onClick={isListening ? stopListening : startListening}
-                      disabled={isLoading}
-                      className={`h-10 w-10 rounded-lg ${
-                        isListening 
-                          ? "bg-red-600 hover:bg-red-700" 
-                          : "border-white/20 bg-white/5 hover:bg-white/10"
-                      }`}
-                    >
-                      <Mic className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{isListening ? "Stop listening" : "Voice input"}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            </AnimatePresence>
+            
+            {isLoading && (
+              <div className="py-6 px-4 md:px-6">
+                <div className="max-w-3xl mx-auto flex">
+                  <div className="mr-4 flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10">
+                      <Bot className="w-4 h-4 text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-400">Analyzing your query...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
 
-              <Button
-                type="submit"
-                disabled={isLoading || isListening || !query.trim()}
-                className="h-10 sm:h-12 px-3 sm:px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+          {/* Scroll to bottom button */}
+          <AnimatePresence>
+            {showScrollButton && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="fixed bottom-32 right-6"
               >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <span className="mr-2 hidden sm:inline">Send</span>
-                    <Send className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={scrollToBottom}
+                        size="sm"
+                        className="rounded-full shadow-lg bg-white/10 hover:bg-white/20 h-9 w-9 p-0"
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Scroll to bottom</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* File Upload Area */}
+          {files.length > 0 && (
+            <div className="px-6 py-2 bg-blue-900/20 border-t border-white/10">
+              <div className="max-w-3xl mx-auto">
+                <div className="flex flex-wrap gap-2">
+                  {files.map((file, index) => (
+                    <div key={index} className="flex items-center space-x-2 bg-white/5 px-3 py-1 rounded-full text-sm">
+                      <FileText className="w-4 h-4 text-blue-400" />
+                      <span className="truncate max-w-32 text-gray-300">{file.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(index)}
+                        className="h-4 w-4 p-0 hover:bg-red-900/30 text-red-300"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </form>
+          )}
+
+          {/* Input Area - Add voice button here */}
+          <div className="border-t border-white/10 px-2 sm:px-6 py-3 sm:py-4 glass w-full">
+            <form onSubmit={handleSubmit} className="flex items-end space-x-2 sm:space-x-3 w-full">
+              <div className="flex-1 relative">
+                <Textarea
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask about your insurance coverage, claims, or benefits..."
+                  className="min-h-[50px] sm:min-h-[60px] max-h-32 resize-none bg-white/5 border-white/10 focus:border-blue-400 rounded-lg text-sm sm:text-base"
+                  disabled={isLoading || isListening}
+                />
+                {detectedLanguage && detectedLanguage !== "en" && (
+                  <Badge className="absolute top-2 right-2 border-blue-500/30 text-blue-400 bg-blue-500/10">
+                    <Globe className="w-3 h-3 mr-1" />
+                    {detectedLanguage.toUpperCase()}
+                  </Badge>
+                )}
+                {isListening && (
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center">
+                    <span className="flex h-3 w-3 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                    </span>
+                    <span className="ml-2 text-sm text-gray-400">Listening...</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex space-x-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isLoading || isListening}
+                        className="h-10 w-10 rounded-lg border-white/20 bg-white/5 hover:bg-white/10"
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".pdf"
+                          multiple
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                        <Paperclip className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Upload PDF</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant={isListening ? "destructive" : "outline"}
+                        size="icon"
+                        onClick={isListening ? stopListening : startListening}
+                        disabled={isLoading}
+                        className={`h-10 w-10 rounded-lg ${
+                          isListening 
+                            ? "bg-red-600 hover:bg-red-700" 
+                            : "border-white/20 bg-white/5 hover:bg-white/10"
+                        }`}
+                      >
+                        <Mic className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{isListening ? "Stop listening" : "Voice input"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading || isListening || !query.trim()}
+                  className="h-10 sm:h-12 px-3 sm:px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <span className="mr-2 hidden sm:inline">Send</span>
+                      <Send className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

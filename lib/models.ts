@@ -97,6 +97,11 @@ const UserSchema = new mongoose.Schema({
     default: 'active'
   },
   // OAuth provider info
+  provider: {
+    type: String,
+    enum: ['credentials', 'google'],
+    default: 'credentials'
+  },
   providers: [{
     provider: {
       type: String,
