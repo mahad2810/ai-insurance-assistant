@@ -76,6 +76,7 @@ interface ChatSession {
 
 interface ChatInterfaceProps {
   chatId: string;
+  // Removed tryOnceMode property as per instructions
 }
 
 // TypeScript: Add missing types for SpeechRecognition
@@ -1269,4 +1270,4 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
       </div>
     </div>
   );
-} 
+}

@@ -8,9 +8,8 @@ import { Suspense } from 'react';
 function ChatPageContent() {
   const searchParams = useSearchParams();
   const chatId = searchParams.get('id') || uuidv4();
-  const isTryOnceMode = searchParams.get('mode') === 'try-once';
 
-  return <ChatInterface chatId={chatId} isTryOnceMode={isTryOnceMode} />;
+  return <ChatInterface chatId={chatId} />;
 }
 
 export default function ChatPage() {
