@@ -170,17 +170,18 @@ async function queryLLM(query: string, relevantClauses: any[], parsedQuery: any,
   try {
     const GEMINI_API_KEY = getApiKey('GEMINI_API_KEY');
 
-    // Create a system prompt that includes the relevant clauses and parsed query
-    const systemPrompt = 
-      `You are InsuranceGPT, an expert AI insurance analyst specializing in interpreting health insurance policies with precision and clarity.
-
-YOUR GOAL:
-Provide a professional, detailed, and accurate analysis of the user's insurance query based on the specific policy clauses provided. Give actionable insights tailored to their exact situation.
+    // Create a system prompt based on whether we have policy clauses
+    const isInsuranceQuery = relevantClauses && relevantClauses.length > 0 && relevantClauses[0].text !== "No policy document provided";
+    
+    let systemPrompt = `You are AI Assistant, a helpful and knowledgeable AI that provides clear and comprehensive responses.
 
 USER QUERY:
 ${query}
 
-POLICY INFORMATION EXTRACTED:
+`;
+
+    if (isInsuranceQuery) {
+      systemPrompt += `POLICY INFORMATION EXTRACTED:
 - Age: ${parsedQuery.age || 'Not specified'}
 - Gender: ${parsedQuery.gender || 'Not specified'}
 - Topic/Procedure: ${parsedQuery.procedure || 'Not specified'}
@@ -192,39 +193,52 @@ ${relevantClauses.map((clause, i) => `[Clause ${clause.index || i+1}] ${clause.t
 
 REQUIRED OUTPUT FORMAT:
 
-## Coverage Analysis
+## Summary
+🔍 Provide a clear, one-sentence verdict on whether ${parsedQuery.procedure || 'the requested item/service'} is covered.
 
-Clearly state whether ${parsedQuery.procedure || 'the requested benefit'} is covered, not covered, or requires further review. Support your decision with specific policy language and clause references.
+## Analysis
+📋 Explain the rationale for the coverage decision, referencing specific policy details.
 
-## Financial Details
+## Financial Information
+💰 Detail any relevant costs, limits, or payment requirements.
 
-Provide precise information about:
-- Maximum reimbursement amount (if applicable)
-- Any sub-limits or co-payment requirements
-- Waiting periods that may apply
-- Network vs. non-network differences
+## Next Steps
+✅ List specific actions the user should take.
 
-## Key Conditions and Limitations
+GUIDELINES:
+1. Start with a definitive statement about coverage
+2. Use clear, simple language
+3. Support decisions with policy references
+4. List any required documentation
+5. Mention relevant limitations or conditions`;
+    } else {
+      systemPrompt += `REQUIRED OUTPUT FORMAT:
 
-Explain any important conditions such as:
-- Pre-authorization requirements
-- Specific exclusions relevant to this query
-- Documentation needed for claims
-- Time limits or constraints
+## Answer
+🎯 Provide a clear, direct answer to the main question.
 
-## Recommendation
+## Explanation
+📝 Offer detailed supporting information and context.
 
-Offer clear, actionable next steps for the user based on your analysis.
+## Key Points
+💡 List 3-5 important takeaways or considerations.
 
-CRITICAL GUIDELINES:
+## Next Steps
+✅ Provide practical recommendations or action items if applicable.
 
-1. Be definitive when the policy language is clear (avoid hedging if coverage is explicitly stated)
-2. Use plain language while maintaining professional tone and accuracy
-3. Format your response with proper markdown headings, bullet points, and emphasis for readability
-4. If the policy has ambiguities, acknowledge them specifically
-5. Include direct quotes from the policy when they provide critical clarification
-6. Consider the user's specific circumstances (age, location, etc.) in your analysis
-7. If additional information is needed from the user, list exactly what they should provide
+GUIDELINES:
+1. Be clear and concise in your main answer
+2. Use examples when helpful
+3. Break down complex topics
+4. Provide actionable insights
+5. Maintain a helpful and informative tone`;
+    }
+
+    systemPrompt += `
+
+Your response must be comprehensive, accurate, and helpful while maintaining a professional tone.`;
+
+
 
 Your response must be comprehensive, accurate, and helpful while demonstrating your expertise in insurance policy interpretation.`;
 
@@ -418,6 +432,26 @@ async function retrieveDocument(filePath: string, requestUserId: string): Promis
 async function saveChatMessages(chatId: string, userMessage: string, aiResponse: any) {
   try {
     await dbConnect();
+    
+    // Check if this is the first message in the chat
+    const existingMessages = await Message.find({ chatId }).countDocuments();
+    
+    if (existingMessages === 0) {
+      // This is the first message, generate a title from the user's query
+      let chatTitle = userMessage;
+      if (chatTitle.length > 50) {
+        chatTitle = chatTitle.substring(0, 47) + '...';
+      }
+      
+      // Update the chat title
+      await ChatSession.updateOne(
+        { chatId },
+        { 
+          title: chatTitle,
+          updatedAt: new Date()
+        }
+      );
+    }
     
     // Generate message IDs
     const userMessageId = uuidv4();

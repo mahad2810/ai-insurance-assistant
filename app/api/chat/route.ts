@@ -69,10 +69,18 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     
     const newChatId = uuidv4();
+    let chatTitle = title;
+    
+    // If no title provided, we'll set it to "New Chat" and update it later
+    // based on the first message content
+    if (!chatTitle) {
+      chatTitle = 'New Chat';
+    }
+    
     const newChatSession = await ChatSession.create({
       chatId: newChatId,
       userId: session.user.id,
-      title: title || 'New Chat',
+      title: chatTitle,
       createdAt: new Date(),
       updatedAt: new Date(),
       messageCount: 0
