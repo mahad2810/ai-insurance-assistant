@@ -76,6 +76,7 @@ interface ChatSession {
 
 interface ChatInterfaceProps {
   chatId: string;
+  isTryOnceMode?: boolean;
 }
 
 // TypeScript: Add missing types for SpeechRecognition
@@ -95,7 +96,7 @@ interface SpeechRecognitionErrorEvent extends Event {
   error: string;
 }
 
-export default function ChatInterface({ chatId }: ChatInterfaceProps) {
+export default function ChatInterface({ chatId, isTryOnceMode = false }: ChatInterfaceProps) {
   const { data: session, status } = useSession();
   const { toast } = useToast();
   
@@ -115,6 +116,7 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
   const [isListening, setIsListening] = useState(false);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [recognition, setRecognition] = useState<any>(null);
+  const [showTryOnceBanner, setShowTryOnceBanner] = useState(isTryOnceMode);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -151,11 +153,22 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
   }, [messages]);
 
   useEffect(() => {
-    if (chatId) {
+    if (chatId && !isTryOnceMode) {
       fetchMessages();
       fetchChatSessions();
     }
   }, [chatId]);
+
+  // Show a toast message for try-once mode
+  useEffect(() => {
+    if (isTryOnceMode) {
+      toast({
+        title: "Try Once Mode",
+        description: "Your chat history won't be saved. Sign in to keep your conversations.",
+        duration: 10000,
+      });
+    }
+  }, []);
 
   const fetchMessages = async () => {
     try {
@@ -615,7 +628,8 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
           chunks: firstParsedPDF?.chunks || [],
           chatId,
           language: selectedLanguage !== "en" ? selectedLanguage : undefined,
-          detectedLanguage: detectedLanguage || undefined
+          detectedLanguage: detectedLanguage || undefined,
+          isTryOnceMode: isTryOnceMode
         }),
       });
 

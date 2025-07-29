@@ -280,18 +280,16 @@ Your response must be comprehensive, accurate, and helpful while maintaining a p
     
     console.log("✅ Gemini API response received");
     
-    // Parse the decision from the response - more conclusive approach
+    // Parse the decision from the response
     let decision = "needs_review";
-    let confidence = 0.5; // Default confidence
     
-    // First check for explicit statements about coverage
+    // Check for coverage statements
     if (responseText.toLowerCase().includes("is covered") || 
         responseText.toLowerCase().includes("are covered") ||
         responseText.toLowerCase().includes("does cover") ||
         responseText.toLowerCase().includes("fully covered") ||
         responseText.toLowerCase().includes("coverage applies")) {
       decision = "COVERED";
-      confidence = 0.85;
     } 
     else if (responseText.toLowerCase().includes("is not covered") || 
              responseText.toLowerCase().includes("are not covered") ||
@@ -299,21 +297,21 @@ Your response must be comprehensive, accurate, and helpful while maintaining a p
              responseText.toLowerCase().includes("no coverage") ||
              responseText.toLowerCase().includes("explicitly excluded")) {
       decision = "NOT_COVERED";
-      confidence = 0.85;
+      
     }
     // More nuanced coverage indicators
     else if (responseText.toLowerCase().includes("will be covered") ||
              responseText.toLowerCase().includes("would be covered") ||
              responseText.toLowerCase().includes("should be covered")) {
       decision = "COVERED";
-      confidence = 0.75;
+      
     }
     else if (responseText.toLowerCase().includes("will not be covered") ||
              responseText.toLowerCase().includes("would not be covered") ||
              responseText.toLowerCase().includes("should not be covered") ||
              responseText.toLowerCase().includes("unlikely to be covered")) {
       decision = "NOT_COVERED";
-      confidence = 0.75;
+      
     }
     
     // Extract potential amount information
@@ -354,7 +352,6 @@ Your response must be comprehensive, accurate, and helpful while maintaining a p
     
     return {
       decision,
-      confidence,
       explanation: translatedResponse,
       amount,
       details: details.length > 0 ? details.slice(0, 5) : undefined,
@@ -433,13 +430,31 @@ async function saveChatMessages(chatId: string, userMessage: string, aiResponse:
     const existingMessages = await Message.find({ chatId }).countDocuments();
     
     if (existingMessages === 0) {
-      // This is the first message, generate a title from the user's query
+      // Generate an intelligent title from the first message
       let chatTitle = userMessage;
+
+      // 1. Clean the title - remove line breaks and extra spaces
+      chatTitle = chatTitle.replace(/[\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
+      
+      // 2. Extract main topic - take the first sentence or phrase
+      chatTitle = chatTitle.split(/[.!?]/)
+        .filter(s => s.trim().length > 0)[0] || chatTitle;
+      
+      // 3. Clean up and format
+      // Remove interrogatives at the start
+      chatTitle = chatTitle.replace(/^(what|how|why|when|who|where|can|could|would|will|do|does|is|are)\s+/i, '');
+      // Capitalize first letter
+      chatTitle = chatTitle.charAt(0).toUpperCase() + chatTitle.slice(1);
+      
+      // 4. Truncate to reasonable length while keeping words intact
       if (chatTitle.length > 50) {
         chatTitle = chatTitle.substring(0, 47) + '...';
+      } else {
+        // If no truncation, ensure there's no trailing punctuation
+        chatTitle = chatTitle.replace(/[.!?,;:]$/, '');
       }
       
-      // Update the chat title
+      // 5. Update the chat title
       await ChatSession.updateOne(
         { chatId },
         { 
@@ -491,7 +506,12 @@ export async function POST(request: NextRequest) {
     const userId = session?.user?.id;
     
     const body = await request.json();
-    const { query, pdfContent, chunks = [], chatId, language } = body;
+    const { query, pdfContent, chunks = [], chatId, language, isTryOnceMode = false } = body;
+    
+    // Allow non-authenticated requests only in try-once mode
+    if (!userId && !isTryOnceMode) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
 
     console.log("🚀 Ask API called:", {
       hasQuery: !!query,
@@ -589,13 +609,12 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ LLM processing complete:", {
       decision: result.decision,
-      confidence: result.confidence,
       hasAmount: !!result.amount,
       detailsCount: result.details?.length || 0,
     });
 
-    // If user is authenticated and chatId is provided, save messages to the database
-    if (userId && chatId) {
+    // Save messages only for authenticated users and non-try-once mode
+    if (userId && chatId && !isTryOnceMode) {
       try {
         const messageIds = await saveChatMessages(chatId, query, result);
         console.log("💾 Chat messages saved:", messageIds);
@@ -609,7 +628,6 @@ export async function POST(request: NextRequest) {
     let translatedResult: {
       decision: string;
       amount: any;
-      confidence: number;
       explanation: string;
       details?: string[];
       timestamp?: string;
@@ -706,7 +724,7 @@ export async function POST(request: NextRequest) {
           details: translatedDetails,
           wasTranslated: true,
           originalQuery: query, // Store the original query for reference
-          documentPath // Store the document path
+          documentPath: documentPath || undefined // Store the document path as optional
         };
         
         console.log("✅ Response successfully translated to", queryLanguage);
@@ -715,8 +733,11 @@ export async function POST(request: NextRequest) {
         console.log("⚠️ Returning response in English due to translation error");
       }
     } else {
-      // Store document path in the result
-      translatedResult.documentPath = documentPath;
+      // For non-translated responses, include document path if available
+      translatedResult = {
+        ...result,
+        documentPath: documentPath || undefined
+      };
     }
 
     const response = {

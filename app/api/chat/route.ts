@@ -58,33 +58,44 @@ export async function GET(req: NextRequest) {
 // POST - Create a new chat session
 export async function POST(req: NextRequest) {
   try {
+    const { title, isTryOnceMode = false } = await req.json();
+    
+    // Get session for authenticated users
     const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    const userId = session?.user?.id;
+    
+    // Check authentication unless in try-once mode
+    if (!userId && !isTryOnceMode) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
-    const { title } = await req.json();
-
-    // Create a new chat session in the database
-    await dbConnect();
-    
     const newChatId = uuidv4();
-    let chatTitle = title;
+    let chatTitle = title || 'New Chat';
     
-    // If no title provided, we'll set it to "New Chat" and update it later
-    // based on the first message content
-    if (!chatTitle) {
-      chatTitle = 'New Chat';
+    let newChatSession;
+    
+    if (isTryOnceMode) {
+      // For try-once mode, create an ephemeral session object
+      newChatSession = {
+        chatId: newChatId,
+        title: chatTitle,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        messageCount: 0,
+        isTryOnceMode: true // Flag to identify try-once sessions
+      };
+    } else {
+      // For authenticated users, create a persistent chat session
+      await dbConnect();
+      newChatSession = await ChatSession.create({
+        chatId: newChatId,
+        userId: userId, // Safe to use since we checked authentication above
+        title: chatTitle,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        messageCount: 0
+      });
     }
-    
-    const newChatSession = await ChatSession.create({
-      chatId: newChatId,
-      userId: session.user.id,
-      title: chatTitle,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      messageCount: 0
-    });
 
     return NextResponse.json({
       success: true,

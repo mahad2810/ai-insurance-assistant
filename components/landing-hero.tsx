@@ -79,6 +79,16 @@ export default function LandingHero() {
                   Sign Up
                 </Button>
               </Link>
+              <Link href="/chat?mode=try-once" className="w-full sm:w-auto">
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full border-white/20 text-white bg-gradient-to-r from-emerald-600/30 to-cyan-600/30 hover:from-emerald-600/40 hover:to-cyan-600/40 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Try Once Without Account
+                </Button>
+              </Link>
             </>
           )}
         </div>
