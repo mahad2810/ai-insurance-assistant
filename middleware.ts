@@ -8,13 +8,11 @@ export async function middleware(req: NextRequest) {
   const publicPaths = [
     '/',
     '/about',
-    '/try-chat',
     '/auth/signin',
     '/auth/register',
     '/auth/error',
     '/api/auth',
     '/api/ask',
-    '/api/try-chat',
     '/api/translate',
     '/api/detect-language'
   ];

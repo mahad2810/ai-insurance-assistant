@@ -58,44 +58,30 @@ export async function GET(req: NextRequest) {
 // POST - Create a new chat session
 export async function POST(req: NextRequest) {
   try {
-    const { title, isTryOnceMode = false } = await req.json();
+    const { title } = await req.json();
     
     // Get session for authenticated users
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
     
-    // Check authentication unless in try-once mode
-    if (!userId && !isTryOnceMode) {
+    // Check authentication
+    if (!userId) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
     const newChatId = uuidv4();
     let chatTitle = title || 'New Chat';
     
-    let newChatSession;
-    
-    if (isTryOnceMode) {
-      // For try-once mode, create an ephemeral session object
-      newChatSession = {
-        chatId: newChatId,
-        title: chatTitle,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        messageCount: 0,
-        isTryOnceMode: true // Flag to identify try-once sessions
-      };
-    } else {
-      // For authenticated users, create a persistent chat session
-      await dbConnect();
-      newChatSession = await ChatSession.create({
-        chatId: newChatId,
-        userId: userId, // Safe to use since we checked authentication above
-        title: chatTitle,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        messageCount: 0
-      });
-    }
+    // Create a persistent chat session
+    await dbConnect();
+    const newChatSession = await ChatSession.create({
+      chatId: newChatId,
+      userId: userId,
+      title: chatTitle,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      messageCount: 0
+    });
 
     return NextResponse.json({
       success: true,

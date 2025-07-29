@@ -76,7 +76,6 @@ interface ChatSession {
 
 interface ChatInterfaceProps {
   chatId: string;
-  isTryOnceMode?: boolean;
 }
 
 // TypeScript: Add missing types for SpeechRecognition
@@ -96,7 +95,7 @@ interface SpeechRecognitionErrorEvent extends Event {
   error: string;
 }
 
-export default function ChatInterface({ chatId, isTryOnceMode = false }: ChatInterfaceProps) {
+export default function ChatInterface({ chatId }: ChatInterfaceProps) {
   const { data: session, status } = useSession();
   const { toast } = useToast();
   
@@ -116,7 +115,6 @@ export default function ChatInterface({ chatId, isTryOnceMode = false }: ChatInt
   const [isListening, setIsListening] = useState(false);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [recognition, setRecognition] = useState<any>(null);
-  const [showTryOnceBanner, setShowTryOnceBanner] = useState(isTryOnceMode);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -153,22 +151,11 @@ export default function ChatInterface({ chatId, isTryOnceMode = false }: ChatInt
   }, [messages]);
 
   useEffect(() => {
-    if (chatId && !isTryOnceMode) {
+    if (chatId) {
       fetchMessages();
       fetchChatSessions();
     }
   }, [chatId]);
-
-  // Show a toast message for try-once mode
-  useEffect(() => {
-    if (isTryOnceMode) {
-      toast({
-        title: "Try Once Mode",
-        description: "Your chat history won't be saved. Sign in to keep your conversations.",
-        duration: 10000,
-      });
-    }
-  }, []);
 
   const fetchMessages = async () => {
     try {
@@ -628,8 +615,7 @@ export default function ChatInterface({ chatId, isTryOnceMode = false }: ChatInt
           chunks: firstParsedPDF?.chunks || [],
           chatId,
           language: selectedLanguage !== "en" ? selectedLanguage : undefined,
-          detectedLanguage: detectedLanguage || undefined,
-          isTryOnceMode: isTryOnceMode
+          detectedLanguage: detectedLanguage || undefined
         }),
       });
 

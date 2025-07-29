@@ -506,10 +506,10 @@ export async function POST(request: NextRequest) {
     const userId = session?.user?.id;
     
     const body = await request.json();
-    const { query, pdfContent, chunks = [], chatId, language, isTryOnceMode = false } = body;
+    const { query, pdfContent, chunks = [], chatId, language } = body;
     
-    // Allow non-authenticated requests only in try-once mode
-    if (!userId && !isTryOnceMode) {
+    // Require authentication for all requests
+    if (!userId) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
@@ -613,8 +613,8 @@ export async function POST(request: NextRequest) {
       detailsCount: result.details?.length || 0,
     });
 
-    // Save messages only for authenticated users and non-try-once mode
-    if (userId && chatId && !isTryOnceMode) {
+    // Save messages for authenticated users
+    if (userId && chatId) {
       try {
         const messageIds = await saveChatMessages(chatId, query, result);
         console.log("💾 Chat messages saved:", messageIds);
