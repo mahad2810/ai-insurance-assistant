@@ -238,10 +238,6 @@ GUIDELINES:
 
 Your response must be comprehensive, accurate, and helpful while maintaining a professional tone.`;
 
-
-
-Your response must be comprehensive, accurate, and helpful while demonstrating your expertise in insurance policy interpretation.`;
-
     // Prepare the payload for the Gemini API
     const payload = {
       contents: [
@@ -262,7 +258,7 @@ Your response must be comprehensive, accurate, and helpful while demonstrating y
     
     // Make the API call
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -615,13 +611,17 @@ export async function POST(request: NextRequest) {
       amount: any;
       confidence: number;
       explanation: string;
-      details: string[];
-      timestamp: string;
-      parsedQuery: any;
+      details?: string[];
+      timestamp?: string;
+      parsedQuery?: any;
       wasTranslated?: boolean;
       originalQuery?: string;
       documentPath?: string;
-    } = { ...result };
+    } = { 
+      ...result,
+      timestamp: new Date().toISOString(),
+      parsedQuery
+    };
     
     if (queryLanguage && queryLanguage !== "en") {
       console.log(`🌐 Translating response to detected language: ${queryLanguage}`);
@@ -666,7 +666,7 @@ export async function POST(request: NextRequest) {
         // Translate details (batch translate)
         const detailsPrompt = `Translate each line from English to ${queryLanguage}. Return only the translated lines separated by ||| (triple pipe):
         
-        ${result.details.join('\n')}`;
+        ${result.details?.join('\n') || ''}`;
         
         const detailsPayload = {
           contents: [
